@@ -1,0 +1,201 @@
+{% extends 'base.html' %} {% block title %}Dashboard{% endblock %} {% block
+content %}
+<div class="page-heading">
+  <div>
+    <p class="eyebrow">YOUR STUDY HQ / {{ state.today }}</p>
+    <h1>Find your<br /><span class="highlight">momentum.</span></h1>
+  </div>
+  <p class="intro">
+    {% if state.profile.name %}Welcome back, {{ state.profile.name }}.{% else
+    %}A little intention goes a long way.{% endif %}<br />Make a plan. Do the
+    work. See it add up.
+  </p>
+</div>
+{% if not state.profile.name %}
+<div class="onboarding">
+  <div>
+    <strong>Start with a workspace that feels like you.</strong>
+    <p>
+      Set your name and weekly goal, then add the subjects you want to make time
+      for.
+    </p>
+  </div>
+  <button class="button" type="button" data-open="profile-dialog">
+    Set up profile ↗
+  </button>
+</div>
+{% endif %}
+<div class="dashboard-grid">
+  <section class="panel hero-panel" aria-labelledby="momentum-title">
+    <div class="panel-heading">
+      <p class="eyebrow">THE WEEK SO FAR</p>
+      <span class="badge">{{ state.stats.goal_percent }}% OF GOAL</span>
+    </div>
+    <h2 id="momentum-title" class="hero-number">
+      {{ state.stats.week_seconds|duration }}
+    </h2>
+    <p>
+      of {{ (state.profile.weekly_goal_minutes * 60)|duration }} planned this
+      week
+    </p>
+    <progress
+      class="goal-progress"
+      value="{{ [state.stats.goal_percent,100]|min }}"
+      max="100"
+      aria-label="Weekly goal completion"
+    >
+      {{ state.stats.goal_percent }}%
+    </progress>
+    <div class="hero-bottom">
+      <span
+        >{% if state.stats.goal_remaining_minutes %}{{
+        state.stats.goal_remaining_minutes }} minutes to your weekly goal.{%
+        else %}Goal reached. Give yourself some credit.{% endif %}</span
+      ><button class="text-button" type="button" data-open="profile-dialog">
+        Edit goal ↗
+      </button>
+    </div>
+    <div class="metric-strip">
+      <div>
+        <strong>{{ state.stats.today_seconds|duration }}</strong
+        ><span>Today</span>
+      </div>
+      <div>
+        <strong>{{ state.stats.streak }}<small> days</small></strong
+        ><span>Current streak</span>
+      </div>
+      <div>
+        <strong>{{ state.stats.session_count }}</strong
+        ><span>Sessions saved</span>
+      </div>
+    </div>
+  </section>
+  <section class="panel focus-prompt" aria-labelledby="focus-heading">
+    <div class="focus-orbit" aria-hidden="true"><span>ϟ</span></div>
+    <p class="eyebrow">ONE THING AT A TIME</p>
+    <h2 id="focus-heading">A clear desk.<br />A focused mind.</h2>
+    <p>
+      Choose a subject and give it your attention. Even a short session counts.
+    </p>
+    <a
+      class="button dark"
+      href="{{ '/focus' if state.active_subjects else '/subjects' }}"
+      >{{ 'Start a focus session' if state.active_subjects else 'Add your first
+      subject' }} <span aria-hidden="true">↗</span></a
+    >
+  </section>
+  <section class="panel plan-panel" aria-labelledby="plan-title">
+    <div class="panel-heading">
+      <div>
+        <p class="eyebrow">INTENTION INTO ACTION</p>
+        <h2 id="plan-title">Today's flow</h2>
+      </div>
+      <span class="tag">RULE-BASED PLANNER</span>
+    </div>
+    <p class="muted">
+      Your priorities guide the order. Recovery time is included in your budget.
+    </p>
+    {% if state.active_subjects %}
+    <form id="plan-form" class="inline-form">
+      <div>
+        <label for="plan-minutes">Time available (min)</label
+        ><input
+          id="plan-minutes"
+          name="total_minutes"
+          type="number"
+          min="30"
+          max="600"
+          required
+          value="{{ state.plan.total_minutes if state.plan else 120 }}"
+        />
+      </div>
+      <div>
+        <label for="plan-mode">Approach</label
+        ><select id="plan-mode" name="mode">
+          <option value="balanced" {% if not state.plan or state.plan.mode == 'balanced' %}selected{% endif %}>
+            Balanced · 25 min blocks
+          </option>
+          <option value="exam" {% if state.plan and state.plan.mode == 'exam' %}selected{% endif %}>
+            Exam prep · 40 min blocks
+          </option>
+        </select>
+      </div>
+      <button class="button primary" type="submit">Build my plan ↗</button>
+      <p class="form-error" role="alert"></p>
+    </form>
+    {% else %}
+    <div class="empty-state">
+      <span class="empty-number">01</span>
+      <h3>First, pick your subjects.</h3>
+      <p>Add what you're studying and how important each subject is.</p>
+      <a href="/subjects" class="text-link">Build your subject list ↗</a>
+    </div>
+    {% endif %} {% if state.plan %}
+    <div class="plan-summary">
+      {{ state.plan.study_minutes }} min study <span>+</span> {{
+      state.plan.break_minutes }} min recovery
+      <strong>= {{ state.plan.total_minutes }} min total</strong>
+    </div>
+    <ol class="flow-list">
+      {% for block in state.plan.blocks %}
+      <li class="flow-item {{ block.type }}">
+        <span class="flow-time">+{{ block.offset_minutes }}m</span>
+        <div>
+          <strong>{{ block.subject }}</strong
+          ><span
+            >{{ 'Focus session' if block.type == 'study' else 'Recovery break'
+            }}</span
+          >
+        </div>
+        <span class="flow-duration">{{ block.minutes }} min</span>{% if
+        block.type == 'study' %}<a
+          href="/focus?subject={{ block.subject_id }}&minutes={{ block.minutes }}"
+          aria-label="Start {{ block.subject }} for {{ block.minutes }} minutes"
+          >↗</a
+        >{% endif %}
+      </li>
+      {% endfor %}
+    </ol>
+    {% elif state.active_subjects %}
+    <div class="empty-state compact">
+      <p>
+        No plan yet. Choose your time budget to give today a little structure.
+      </p>
+    </div>
+    {% endif %}
+  </section>
+  <section class="panel subject-overview" aria-labelledby="subjects-title">
+    <div class="panel-heading">
+      <div>
+        <p class="eyebrow">WHAT YOU'RE WORKING ON</p>
+        <h2 id="subjects-title">Your subjects</h2>
+      </div>
+      <a class="text-link" href="/subjects">Manage ↗</a>
+    </div>
+    {% for subject in state.active_subjects[:5] %}<a
+      class="subject-row"
+      href="/focus?subject={{ subject.id }}"
+      ><span class="subject-marker marker-{{ loop.index0 % 4 }}"
+        >{{ subject.name[0]|upper }}</span
+      ><span class="subject-row-name"
+        ><strong>{{ subject.name }}</strong
+        ><small
+          >{{ subject.seconds|duration }} studied · Priority {{
+          subject.importance }}/10</small
+        ></span
+      ><span aria-hidden="true">↗</span></a
+    >{% else %}
+    <p class="muted">Your subject list is a blank page. Make it yours.</p>
+    <a href="/subjects" class="button">Add a subject +</a>{% endfor %}
+    <div class="note-card">
+      <span class="eyebrow">A SMALL REMINDER</span>
+      <p>Consistency beats intensity.<br />Show up, then build from there.</p>
+    </div>
+  </section>
+</div>
+{% endblock %} {% block scripts %}
+<script
+  type="module"
+  src="{{ url_for('static', filename='js/dashboard.js') }}"
+></script>
+{% endblock %}

@@ -1,0 +1,202 @@
+{% extends 'base.html' %} {% block title %}Insights{% endblock %} {% block
+content %}
+<div class="page-heading">
+  <div>
+    <p class="eyebrow">THE WORK ADDS UP / 04</p>
+    <h1>Your effort,<br /><span class="highlight">made visible.</span></h1>
+  </div>
+  <div class="button-row">
+    <a class="button" href="/api/export">Export CSV ↓</a>{% if
+    state.active_subjects %}<button
+      class="button primary"
+      type="button"
+      data-open="manual-dialog"
+    >
+      Log a session +</button
+    >{% endif %}
+  </div>
+</div>
+<div class="stats-grid">
+  <section class="panel stat-tile lime">
+    <p class="eyebrow">THIS WEEK</p>
+    <strong>{{ state.stats.week_seconds|duration }}</strong
+    ><span>{{ state.stats.goal_percent }}% of your weekly goal</span>
+  </section>
+  <section class="panel stat-tile">
+    <p class="eyebrow">TOTAL STUDY TIME</p>
+    <strong>{{ state.stats.total_seconds|duration }}</strong
+    ><span>{{ state.stats.session_count }} saved sessions</span>
+  </section>
+  <section class="panel stat-tile pink">
+    <p class="eyebrow">AVERAGE FOCUS</p>
+    <strong
+      >{{ state.stats.average_focus if state.stats.average_focus is not none
+      else '—' }}<small> / 5</small></strong
+    ><span>Your self-reported session ratings</span>
+  </section>
+  <section class="panel stat-tile">
+    <p class="eyebrow">CURRENT STREAK</p>
+    <strong>{{ state.stats.streak }}<small> days</small></strong
+    ><span>{{ state.stats.points }} study points earned</span>
+  </section>
+</div>
+<div class="insights-grid">
+  <section class="panel" aria-labelledby="weekly-title">
+    <div class="panel-heading">
+      <div>
+        <p class="eyebrow">A LITTLE, OFTEN</p>
+        <h2 id="weekly-title">Your week in focus</h2>
+      </div>
+      <span class="tag">WEEK OF {{ state.week_start }}</span>
+    </div>
+    <p class="muted small">Actual study time · {{ state.profile.timezone }}</p>
+    <div
+      class="weekly-chart"
+      role="img"
+      aria-label="Daily study minutes, also listed in the table below"
+    >
+      {% for day in state.weekly %}
+      <div class="chart-column">
+        <span class="chart-value">{{ (day.seconds / 60)|round(1) }}m</span>
+        <div class="bar-track">
+          <div class="bar-fill" data-seconds="{{ day.seconds }}"></div>
+        </div>
+        <span class="chart-label">{{ day.label }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    <details>
+      <summary>View daily values</summary>
+      <table>
+        <caption class="sr-only">
+          Daily study time
+        </caption>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Study time</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for day in state.weekly %}
+          <tr>
+            <td>{{ day.date }}</td>
+            <td>{{ day.seconds|duration }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </details>
+    {% if not state.stats.week_seconds %}
+    <p class="empty-note">
+      No sessions this week yet. Your next session starts the chart.
+    </p>
+    {% endif %}
+  </section>
+  <section class="panel" aria-labelledby="distribution-title">
+    <div class="panel-heading">
+      <div>
+        <p class="eyebrow">GIVE EACH SUBJECT ITS SPACE</p>
+        <h2 id="distribution-title">Target allocation</h2>
+      </div>
+    </div>
+    <p class="muted small">
+      Compare your targets with this week's time across active subjects.
+      Archived subjects remain in total study time.
+    </p>
+    {% if state.active_subjects %}
+    <form id="distribution-form">
+      {% for subject in state.active_subjects %}
+      <div class="distribution-row">
+        <label for="dist-{{ subject.id }}"
+          >{{ subject.name }}<small
+            >{{ subject.actual_percent }}% actual this week</small
+          ></label
+        >
+        <div class="percent-input">
+          <input
+            id="dist-{{ subject.id }}"
+            data-subject-id="{{ subject.id }}"
+            type="number"
+            min="0"
+            max="100"
+            step="1"
+            value="{{ subject.target_percent }}"
+            required
+          /><span>%</span>
+        </div>
+      </div>
+      {% endfor %}
+      <p class="allocation-total" id="allocation-total" role="status">
+        Total: 100%
+      </p>
+      <p class="form-error" role="alert"></p>
+      <div class="button-row">
+        <button class="button primary" type="submit">Save targets</button
+        ><button class="text-button" id="suggest-distribution" type="button">
+          Suggest by priority ↗
+        </button>
+      </div>
+    </form>
+    {% else %}
+    <div class="empty-state compact">
+      <p>Add active subjects to set your allocation.</p>
+      <a href="/subjects" class="text-link">Add a subject ↗</a>
+    </div>
+    {% endif %}
+  </section>
+</div>
+<section class="panel session-panel" aria-labelledby="history-title">
+  <div class="panel-heading">
+    <div>
+      <p class="eyebrow">PROOF YOU SHOWED UP</p>
+      <h2 id="history-title">Recent sessions</h2>
+    </div>
+    <span class="tag">LATEST 30 · EXPORT FOR ALL</span>
+  </div>
+  {% if state.recent_sessions %}
+  <div class="table-scroll">
+    <table>
+      <caption class="sr-only">
+        Recent saved study sessions in {{ state.profile.timezone }}
+      </caption>
+      <thead>
+        <tr>
+          <th>Subject</th>
+          <th>Completed</th>
+          <th>Duration</th>
+          <th>Focus</th>
+          <th>Difficulty</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for session in state.recent_sessions %}
+        <tr>
+          <td><strong>{{ session.subject }}</strong></td>
+          <td>{{ session.display_date }}</td>
+          <td>{{ session.duration_seconds|duration }}</td>
+          <td>{{ session.focus_rating }}/5</td>
+          <td><span class="tag">{{ session.difficulty }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state compact">
+    <h3>Your progress starts with one session.</h3>
+    <p>Use the focus timer or log work you completed offline.</p>
+    <a href="/focus" class="button primary">Find your focus ↗</a>
+  </div>
+  {% endif %}
+</section>
+{% include 'manual-dialog.html' %} {% endblock %} {% block scripts %}
+<script
+  type="module"
+  src="{{ url_for('static', filename='js/data.js') }}"
+></script>
+<script
+  type="module"
+  src="{{ url_for('static', filename='js/manual.js') }}"
+></script>
+{% endblock %}

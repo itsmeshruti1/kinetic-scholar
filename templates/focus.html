@@ -1,0 +1,138 @@
+{% extends 'base.html' %} {% block title %}Focus{% endblock %} {% block content
+%}
+<div class="page-heading focus-heading">
+  <div>
+    <p class="eyebrow">PROTECT YOUR ATTENTION / 03</p>
+    <h1>Be here.<br /><span class="highlight">Do one thing.</span></h1>
+  </div>
+  <button
+    id="distraction-toggle"
+    class="button"
+    type="button"
+    aria-pressed="false"
+  >
+    Distraction-free mode
+  </button>
+</div>
+{% if state.active_subjects %}
+<section class="timer-workspace panel" aria-label="Study timer">
+  <div class="timer-setup" id="timer-setup">
+    <div>
+      <label for="timer-subject">I'm working on</label
+      ><select id="timer-subject">
+        {% for subject in state.active_subjects %}
+        <option value="{{ subject.id }}">{{ subject.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label for="timer-minutes">Session length (min)</label
+      ><input
+        id="timer-minutes"
+        type="number"
+        min="1"
+        max="240"
+        step="1"
+        value="25"
+        required
+      />
+    </div>
+  </div>
+  <span class="tag timer-status" id="timer-status" role="status"
+    >READY WHEN YOU ARE</span
+  >
+  <div
+    class="timer-digits"
+    id="timer-display"
+    role="timer"
+    aria-label="Time remaining"
+  >
+    25:00
+  </div>
+  <progress
+    id="timer-progress"
+    value="0"
+    max="100"
+    aria-label="Session progress"
+  >
+    0%
+  </progress>
+  <p class="timer-note" id="timer-note">One session. One small step forward.</p>
+  <div class="timer-controls">
+    <button class="button primary" id="timer-toggle" type="button">
+      Start focus ↗</button
+    ><button class="button" id="timer-finish" type="button" disabled>
+      Finish & save</button
+    ><button class="text-button" id="timer-reset" type="button" disabled>
+      Discard
+    </button>
+  </div>
+  <p class="form-error" id="timer-error" role="alert"></p>
+  <p class="field-help">
+    Your timer survives navigation and reloads. Paused time doesn't count. Save
+    at least one minute of study.
+  </p>
+</section>
+<div class="focus-footer">
+  <span>NO NOISE. JUST PROGRESS.</span
+  ><button class="text-button" type="button" data-open="manual-dialog">
+    Already studied? Log a session ↗
+  </button>
+</div>
+{% else %}
+<section class="panel empty-state">
+  <span class="empty-number">ϟ</span>
+  <h2>Give your focus a direction.</h2>
+  <p>Add a subject before starting a session.</p>
+  <a class="button primary" href="/subjects">Add a subject ↗</a>
+  <p class="field-help">
+    If you have a pending timer for an archived subject, restore that subject to
+    save it.
+  </p>
+</section>
+{% endif %}
+<dialog id="completion-dialog" aria-labelledby="completion-title">
+  <div class="dialog-heading">
+    <p class="eyebrow">That's time well spent</p>
+    <button
+      class="icon-button"
+      type="button"
+      data-close
+      aria-label="Close session feedback"
+    >
+      ×
+    </button>
+  </div>
+  <h2 id="completion-title">Give yourself credit.</h2>
+  <p id="completion-summary"></p>
+  <form id="completion-form">
+    <label for="session-focus">How focused did you feel?</label
+    ><select id="session-focus" name="focus_rating">
+      <option value="1">1 · Very distracted</option>
+      <option value="2">2 · Somewhat distracted</option>
+      <option value="3" selected>3 · Steady</option>
+      <option value="4">4 · Focused</option>
+      <option value="5">5 · Fully absorbed</option></select
+    ><label for="session-difficulty">How challenging was the work?</label
+    ><select id="session-difficulty" name="difficulty">
+      <option>Easy</option>
+      <option selected>Medium</option>
+      <option>Hard</option>
+    </select>
+    <p class="form-error" role="alert"></p>
+    <div class="button-row">
+      <button class="button primary" type="submit">Save session ↗</button
+      ><button class="button" type="button" data-close>Keep for later</button>
+    </div>
+  </form>
+</dialog>
+{% include 'manual-dialog.html' %} {% endblock %} {% block scripts %}
+<script
+  type="module"
+  src="{{ url_for('static', filename='js/focus.js') }}"
+></script>
+<script
+  type="module"
+  src="{{ url_for('static', filename='js/manual.js') }}"
+></script>
+{% endblock %}

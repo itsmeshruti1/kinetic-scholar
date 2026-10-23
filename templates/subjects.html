@@ -1,0 +1,136 @@
+{% extends 'base.html' %} {% block title %}Subjects{% endblock %} {% block
+content %}
+<div class="page-heading">
+  <div>
+    <p class="eyebrow">BUILD YOUR CURRICULUM / 02</p>
+    <h1>Make room for<br /><span class="highlight">what matters.</span></h1>
+  </div>
+  <button class="button primary" type="button" id="add-subject">
+    Add subject +
+  </button>
+</div>
+<div class="toolbar">
+  <label class="search-label" for="subject-search"
+    >Find a subject<input
+      type="search"
+      id="subject-search"
+      placeholder="Search your subjects…"
+      autocomplete="off"
+  /></label>
+  <p>
+    <strong>{{ state.active_subjects|length }}</strong> active / 20 available
+  </p>
+</div>
+<p class="muted small">
+  Changing importance or archiving/restoring subjects recalculates target
+  allocations. Study history is always preserved.
+</p>
+<div class="subject-grid" id="subject-grid">
+  {% for subject in state.subjects %}
+  <article
+    class="panel subject-card {% if subject.archived %}archived{% endif %}"
+    data-search="{{ subject.name|lower }}"
+  >
+    <div class="panel-heading">
+      <span class="subject-marker marker-{{ loop.index0 % 4 }}"
+        >{{ subject.name[0]|upper }}</span
+      ><span class="tag"
+        >{{ 'ARCHIVED' if subject.archived else 'PRIORITY ' ~ subject.importance
+        ~ '/10' }}</span
+      >
+    </div>
+    <h2>{{ subject.name }}</h2>
+    <div class="subject-stat">
+      <strong>{{ subject.seconds|duration }}</strong
+      ><span>total study time · {{ subject.sessions }} sessions</span>
+    </div>
+    <p class="small muted">
+      {% if subject.last_studied %}Last studied {{ subject.last_studied }}{%
+      else %}Your first session is waiting.{% endif %}
+    </p>
+    <div class="card-actions">
+      {% if not subject.archived %}<a
+        class="button primary"
+        href="/focus?subject={{ subject.id }}"
+        >Study ↗</a
+      >{% endif %}<button
+        class="button"
+        type="button"
+        data-edit-subject="{{ subject.id }}"
+        data-name="{{ subject.name }}"
+        data-importance="{{ subject.importance }}"
+        data-archived="{{ subject.archived }}"
+      >
+        {{ 'Restore / edit' if subject.archived else 'Edit' }}
+      </button>
+    </div>
+  </article>
+  {% else %}
+  <div class="panel empty-state wide">
+    <span class="empty-number">+</span>
+    <h2>Big ideas start with a subject.</h2>
+    <p>
+      Add up to 20 subjects. Give each a priority from 1 to 10 to shape your
+      study plan.
+    </p>
+    <button class="button primary" type="button" data-trigger-add>
+      Add your first subject ↗
+    </button>
+  </div>
+  {% endfor %}
+</div>
+<p id="search-empty" class="empty-state" role="status" hidden>
+  No subjects match your search.
+</p>
+<dialog id="subject-dialog" aria-labelledby="subject-title">
+  <div class="dialog-heading">
+    <p class="eyebrow">Your curriculum</p>
+    <button
+      class="icon-button"
+      type="button"
+      data-close
+      aria-label="Close subject editor"
+    >
+      ×
+    </button>
+  </div>
+  <h2 id="subject-title">Add a subject</h2>
+  <form id="subject-form">
+    <input name="id" type="hidden" /><label for="subject-name"
+      >Subject name</label
+    ><input
+      id="subject-name"
+      name="name"
+      maxlength="60"
+      required
+      autocomplete="off"
+    /><label for="subject-importance">Importance (1–10)</label
+    ><input
+      id="subject-importance"
+      name="importance"
+      type="number"
+      min="1"
+      max="10"
+      value="5"
+      required
+    />
+    <p class="field-help">
+      Higher priorities get more attention in generated plans.
+    </p>
+    <label id="archive-label" class="checkbox-label" hidden
+      ><input type="checkbox" name="archived" />Archive this subject
+      <small>(keeps all study history)</small></label
+    >
+    <p class="form-error" role="alert"></p>
+    <div class="button-row">
+      <button class="button primary" type="submit">Save subject ↗</button
+      ><button class="button" type="button" data-close>Cancel</button>
+    </div>
+  </form>
+</dialog>
+{% endblock %} {% block scripts %}
+<script
+  type="module"
+  src="{{ url_for('static', filename='js/subjects.js') }}"
+></script>
+{% endblock %}

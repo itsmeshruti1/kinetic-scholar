@@ -1,0 +1,67 @@
+<dialog id="manual-dialog" aria-labelledby="manual-title">
+  <div class="dialog-heading">
+    <p class="eyebrow">Offline work counts too</p>
+    <button
+      class="icon-button"
+      type="button"
+      data-close
+      aria-label="Close manual session"
+    >
+      ×
+    </button>
+  </div>
+  <h2 id="manual-title">Log a study session.</h2>
+  <p class="muted">
+    Record work you've already completed. It will be logged at the current time.
+  </p>
+  <form id="manual-form">
+    <label for="manual-subject">Subject</label
+    ><select id="manual-subject" name="subject_id" required>
+      {% for subject in state.active_subjects %}
+      <option value="{{ subject.id }}">{{ subject.name }}</option>
+      {% endfor %}</select
+    ><label for="manual-minutes">Minutes studied</label
+    ><input
+      id="manual-minutes"
+      name="minutes"
+      type="number"
+      min="1"
+      max="240"
+      step="1"
+      value="25"
+      required
+    /><label for="manual-focus"
+      >Focus rating (1 = distracted, 5 = absorbed)</label
+    ><input
+      id="manual-focus"
+      name="focus_rating"
+      type="number"
+      min="1"
+      max="5"
+      step="1"
+      value="3"
+      required
+    /><label for="manual-difficulty">Difficulty</label
+    ><select id="manual-difficulty" name="difficulty">
+      <option>Easy</option>
+      <option selected>Medium</option>
+      <option>Hard</option>
+    </select>
+    <p class="form-error" role="alert"></p>
+    <div class="button-row">
+      <button
+        class="button primary"
+        type="submit"
+        {%
+        if
+        not
+        state.active_subjects
+        %}disabled{%
+        endif
+        %}
+      >
+        Save session ↗</button
+      ><button class="button" type="button" data-close>Cancel</button>
+    </div>
+  </form>
+</dialog>

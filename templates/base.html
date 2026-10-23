@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A focused study workspace. Plan your time, finish a focus session, and see your progress. Private by default, stored on your computer.">
+  <meta name="color-scheme" content="light dark">
+  <title>{% block title %}Dashboard{% endblock %} · Kinetic Scholar</title>
+  <link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}" type="image/svg+xml">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+  <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+</head>
+<body data-page="{{ page|default('error') }}">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="Kinetic Scholar dashboard"><span class="brand-mark" aria-hidden="true">ϟ</span><span>KINETIC<br><strong>SCHOLAR</strong></span></a>
+    <nav class="main-nav" aria-label="Main navigation">
+      {% for key, href, label, number in [('dashboard','/','Dashboard','01'), ('subjects','/subjects','Subjects','02'), ('focus','/focus','Focus','03'), ('data','/data','Insights','04')] %}
+      <a href="{{ href }}" {% if page|default('') == key %}aria-current="page"{% endif %}><span class="nav-number">{{ number }}</span>{{ label }}</a>
+      {% endfor %}
+    </nav>
+    <div class="top-actions">
+      <button id="theme-toggle" class="icon-button" type="button" aria-label="Switch to dark theme">◐</button>
+      {% if state is defined %}<button class="profile-button" type="button" data-open="profile-dialog" aria-label="Edit study profile"><span class="avatar">{{ (state.profile.name or 'K')[0]|upper }}</span><span class="profile-label">My workspace</span></button>{% endif %}
+    </div>
+  </header>
+  <main id="main" tabindex="-1">{% block content %}{% endblock %}</main>
+  <footer class="footer"><span><span class="status-dot"></span> LOCAL WORKSPACE · YOUR DATA STAYS HERE</span><span>Small sessions. Steady progress.</span></footer>
+  <div id="toast" class="toast" role="status" hidden></div>
+  {% if state is defined %}
+  <dialog id="profile-dialog" aria-labelledby="profile-title">
+    <div class="dialog-heading"><p class="eyebrow">Your workspace</p><button type="button" class="icon-button" data-close aria-label="Close profile">×</button></div>
+    <h2 id="profile-title">Make it yours.</h2>
+    <p class="muted">A local profile, not an online account. Editing it never clears study history.</p>
+    <form id="profile-form">
+      <label for="profile-name">Your name</label><input id="profile-name" name="name" required maxlength="60" value="{{ state.profile.name }}" autocomplete="given-name">
+      <label for="weekly-goal">Weekly study goal <span class="muted">(minutes)</span></label><input id="weekly-goal" name="weekly_goal_minutes" type="number" min="30" max="6000" step="1" required value="{{ state.profile.weekly_goal_minutes }}">
+      <label for="profile-timezone">Time zone</label><input id="profile-timezone" name="timezone" required maxlength="64" value="{{ state.profile.timezone }}" data-new-profile="{{ 'true' if not state.profile.name else 'false' }}" aria-describedby="timezone-help">
+      <p class="field-help" id="timezone-help">Used for your day, week, and streak. Example: Asia/Kolkata.</p>
+      <p class="form-error" role="alert"></p>
+      <div class="button-row"><button class="button primary" type="submit">Save profile <span aria-hidden="true">↗</span></button><button class="button" type="button" data-close>Cancel</button></div>
+    </form>
+  </dialog>
+  {% endif %}
+  <script type="module" src="{{ url_for('static', filename='js/common.js') }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>
